@@ -13,4 +13,4 @@ This repository is still new, so there's probably still errors in the code -- if
 We're modelling (simulating) the dynamics of neuromodulator concentration [x] and neuromodulator bound to sensor [x s] and to receptor [x r]. 
 This is equivalent to intracellular calcium measurements in the presence of endogenous ca buffers and exogenous buffers (the sensors). 
 Here, we assume that we are dealing with one compartment in equilibrium to start and everything is linear, including uptake. 
-The Source of x is a train of spikes, each producing a fixed delta_x.
+The Source of x is a train of spikes, each producing a fixed delta_x. -- the inspiration for the model comes from Neher's work with calcium that Karel suggested on email.
