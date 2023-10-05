@@ -1,7 +1,7 @@
 # NM-Imaging
 
 This repository hosts the notebooks and scripts that we'll be using to simulate the NM  imaging pipeline: starting from neuron activity to the generated df/f signal.
-The main goal is to assess how the calculation of f can affect the df/f signal produced. This calculation of f  
+The main goal is to assess how the calculation of f can affect the df/f signal produced. 
 
 - Simulation.ipynb is the notebook with the documentation of this NM imaging model
 - Simulation.py will the script that calls the functions in Functions.py
