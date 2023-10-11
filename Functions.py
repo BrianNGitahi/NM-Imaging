@@ -216,9 +216,8 @@ def signal_vs_activity(number_neurons,firing_rates):
     
 
 
-
 # Check 1:
-signal_vs_activity(2,np.array([1,2,4,10,50,70,100,200,300,400,500,600,700,800,900,1000,1500,2000,2500,3000,5000]))
+#Signal_vs_activity(2,np.array([1,2,4,10,50,70,100,200,300,400,500,600,700,800,900,1000,1500,2000,2500,3000,5000]))
 
 # results: looks plausible -- tho at a big scale it has a linear/exponential trend then it levels off 
 
