@@ -10,7 +10,7 @@ import pandas as pd
 import scipy as sp
 
 # import the necessary functions
-from Functions import simulate_neuron, simulate_nm_conc
+from s_functions import simulate_neuron, simulate_nm_conc
 
 
 # define the background fluorescence due to the tissue

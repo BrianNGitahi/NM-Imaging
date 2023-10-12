@@ -10,7 +10,7 @@ import pandas as pd
 import scipy as sp
 
 # import the necessary functions
-from Functions import simulate_neuron, simulate_nm_conc
+from s_functions import simulate_neuron, simulate_nm_conc
 
 
 # define the background fluorescence due to the tissue
@@ -38,38 +38,41 @@ def bleach_1(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
         # calculate f0 by averaging the previous x number of f values
         # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline
+        # where x is the length of the moving baseline (first element if f[0])
 
-        if i < bline_len:
+        if i == 0:
+            f0 =f[0]
+        elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
             f0 = np.average(f[i-bline_len:i])
+
 
         # calculate normalized signal using the calculated f0
         delta_ft_f0[i] = (f[i]-f0)/(f0)
 
 
     # plot the normalized signal delta f/f0 at the different t
-    plt.plot(t,delta_ft_f0, label = tau + 1)
-    plt.xlabel('time(ms)')
-    plt.ylabel('Delta F/F0')
-    plt.title('Flourescence intensity signal over time (bleach 1)')
-    plt.legend()
+    # plt.plot(t,delta_ft_f0, label = tau + 1)
+    # plt.xlabel('time(ms)')
+    # plt.ylabel('Delta F/F0')
+    # plt.title('Flourescence intensity signal over time (bleach 1)')
+    # plt.legend()
 
     return delta_ft_f0
 
+# TESTING IF THE FUNCTION WORKS
+# # check this bleaching effect 1 for different values of tau -- different bleach factor
+# different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
 
-# check this bleaching effect 1 for different values of tau -- different bleach factor
-different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
+# # generate an input nm conc array from firing neuron
+# firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
+# nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
 
-# generate an input nm conc array from firing neuron
-firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
-nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
-
-# plot bleached signal with different time constants for the bleach factor
-for i in range(len(different_taus)):
-   bleach_1(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
-plt.show()
+# # plot bleached signal with different time constants for the bleach factor
+# for i in range(len(different_taus)):
+#    bleach_1(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
+# plt.show()
 
 
 
@@ -95,9 +98,11 @@ def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
 
         # calculate f0 by averaging the previous x number of f values
         # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline
+        # where x is the length of the moving baseline (first element if f[0])
 
-        if i < bline_len:
+        if i == 0:
+            f0 =f[0]
+        elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
             f0 = np.average(f[i-bline_len:i])
@@ -106,26 +111,26 @@ def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
         delta_ft_f0[i] = (f[i]-f0)/(f0)
 
     # plot the normalized signal delta f/f0 at the different t
-    plt.plot(t,delta_ft_f0, label = tau + 2)
-    plt.xlabel('time(ms)')
-    plt.ylabel('Delta F/F0')
-    plt.title('Flourescence intensity signal over time (bleach 2)')
-    plt.legend()
+    # plt.plot(t,delta_ft_f0, label = tau + 2)
+    # plt.xlabel('time(ms)')
+    # plt.ylabel('Delta F/F0')
+    # plt.title('Flourescence intensity signal over time (bleach 2)')
+    # plt.legend()
 
     return delta_ft_f0
 
+# TESTING IF THE FUNCTION WORKS
+# # check this bleaching effect 1 for different values of tau -- different bleach factor
+# different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
 
-# check this bleaching effect 1 for different values of tau -- different bleach factor
-different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
+# # generate an input nm conc array from firing neuron
+# firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
+# nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
 
-# generate an input nm conc array from firing neuron
-firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
-nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
-
-# plot bleached signal with different time constants for the bleach factor
-for i in range(len(different_taus)):
-   bleach_2(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
-plt.show()
+# # plot bleached signal with different time constants for the bleach factor
+# for i in range(len(different_taus)):
+#    bleach_2(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
+# plt.show()
 
 
 
@@ -151,9 +156,11 @@ def bleach_3(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
         # calculate f0 by averaging the previous x number of f values
         # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline
+        # where x is the length of the moving baseline (first element if f[0])
 
-        if i < bline_len:
+        if i == 0:
+            f0 =f[0]
+        elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
             f0 = np.average(f[i-bline_len:i])
@@ -162,26 +169,26 @@ def bleach_3(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
         delta_ft_f0[i] = (f[i]-f0)/(f0)
 
     # plot the normalized signal delta f/f0 at the different t
-    plt.plot(t,delta_ft_f0, label = tau + 3)
-    plt.xlabel('time(ms)')
-    plt.ylabel('Delta F/F0')
-    plt.title('Flourescence intensity signal over time (bleach 3)')
-    plt.legend()
+    # plt.plot(t,delta_ft_f0, label = tau + 3)
+    # plt.xlabel('time(ms)')
+    # plt.ylabel('Delta F/F0')
+    # plt.title('Flourescence intensity signal over time (bleach 3)')
+    # plt.legend()
 
     return delta_ft_f0
 
+# TESTING IF THE FUNCTION WORKS
+# # check this bleaching effect 1 for different values of tau -- different bleach factor
+# different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
 
-# check this bleaching effect 1 for different values of tau -- different bleach factor
-different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
+# # generate an input nm conc array from firing neuron
+# firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
+# nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
 
-# generate an input nm conc array from firing neuron
-firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
-nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
-
-# plot bleached signal with different time constants for the bleach factor
-for i in range(len(different_taus)):
-   bleach_3(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
-plt.show()
+# # plot bleached signal with different time constants for the bleach factor
+# for i in range(len(different_taus)):
+#    bleach_3(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
+# plt.show()
 
 
 
@@ -208,9 +215,11 @@ def bleach_4(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
         # calculate f0 by averaging the previous x number of f values
         # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline
+        # where x is the length of the moving baseline (first element if f[0])
 
-        if i < bline_len:
+        if i == 0:
+            f0 =f[0]
+        elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
             f0 = np.average(f[i-bline_len:i])
@@ -219,35 +228,24 @@ def bleach_4(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
         delta_ft_f0[i] = (f[i]-f0)/(f0)
 
     # plot the normalized signal delta f/f0 at the different t
-    plt.plot(t,delta_ft_f0, label = tau + 4)
-    plt.xlabel('time(ms)')
-    plt.ylabel('Delta F/F0')
-    plt.title('Flourescence intensity signal over time (bleach 4)')
-    plt.legend()
+    # plt.plot(t,delta_ft_f0, label = tau + 4)
+    # plt.xlabel('time(ms)')
+    # plt.ylabel('Delta F/F0')
+    # plt.title('Flourescence intensity signal over time (bleach 4)')
+    # plt.legend()
 
     return delta_ft_f0
 
+# TESTING IF THE FUNCTION WORKS
+# # check this bleaching effect 1 for different values of tau -- different bleach factor
+# different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
 
-# check this bleaching effect 1 for different values of tau -- different bleach factor
-different_taus = np.array([10e6,10e5,10e4,10e3,10e2,10e1,10e0])
+# # generate an input nm conc array from firing neuron
+# firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
+# nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
 
-# generate an input nm conc array from firing neuron
-firing_neuron = simulate_neuron(n_timesteps=70000,firing_rate=1)
-nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
+# # plot bleached signal with different time constants for the bleach factor
+# for i in range(len(different_taus)):
+#    bleach_4(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
+# plt.show()
 
-# plot bleached signal with different time constants for the bleach factor
-for i in range(len(different_taus)):
-   bleach_4(K_D = 1000, tau=different_taus[i], F_max = 45, F_min = 10, nm_conc=nm_conc)
-plt.show()
-
-
-# ANALYSIS 5: comparing the different contributions at one timescale for the bleach factor
-
-# choose the timescale for the bleach factor
-chosen_tau = 10e4
-
-bleach_1(K_D=1000,tau=chosen_tau, F_max=45, F_min=10, nm_conc=nm_conc)
-bleach_2(K_D=1000,tau=chosen_tau, F_max=45, F_min=10, nm_conc=nm_conc)
-bleach_3(K_D=1000,tau=chosen_tau, F_max=45, F_min=10, nm_conc=nm_conc)
-bleach_4(K_D=1000,tau=chosen_tau, F_max=45, F_min=10, nm_conc=nm_conc)
-plt.show()
