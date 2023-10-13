@@ -17,7 +17,7 @@ from s_functions import simulate_neuron, simulate_nm_conc
 bg_tissue = 1.5
 
 # ANALYSIS 1: bleaching factor acting on the [NM] contribution to F
-def bleach_1(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
+def bleach_nm(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
     # create timesteps array for the plot
     n_timesteps = nm_conc.size
@@ -41,7 +41,7 @@ def bleach_1(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
         # where x is the length of the moving baseline (first element if f[0])
 
         if i == 0:
-            f0 =f[0]
+            f0 = f[0]
         elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
@@ -77,7 +77,7 @@ def bleach_1(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
 
 # ANALYSIS 2: bleaching factor acting on the contributions of the dye, F0 and [NM]
-def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
+def bleach_dnm(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
 
     # create timesteps array for the plot
     n_timesteps = nm_conc.size
@@ -88,9 +88,16 @@ def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
     bleach = np.exp(-t/tau)
 
     # calculate bleached f values: derived in part from eq 2 in Neher/Augustine
-    f= bg_tissue+ bleach*(K_D*F_min + nm_conc*F_max)/(K_D + nm_conc)
+    f = bg_tissue+ bleach*(K_D*F_min + nm_conc*F_max)/(K_D + nm_conc)
     
-    # define the signal array
+    # fit a polynmial to f and subtract it from f
+    poly = np.polyfit(t,f,2)
+    fit = np.polyval(poly,t)
+    f_sub = f-fit
+
+
+    # define the df and the df/f signal array
+    delta_f = np.zeros(f.size)
     delta_ft_f0 = np.zeros(f.size)
 
     # calculate f0 values and populate the signal array
@@ -101,21 +108,48 @@ def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
         # where x is the length of the moving baseline (first element if f[0])
 
         if i == 0:
-            f0 =f[0]
+            f0 = f_sub[0]
         elif i < bline_len:
-            f0 = np.average(f[:i])
+            f0 = np.average(f_sub[:i])
         else: 
-            f0 = np.average(f[i-bline_len:i])
+            f0 = np.average(f_sub[i-bline_len:i])
 
-        # calculate normalized signal using the calculated f0
-        delta_ft_f0[i] = (f[i]-f0)/(f0)
+        # calculate df, and df/f, the normalized signal, using the calculated f0
+        delta_f[i] = f_sub[i]-f0
+        delta_ft_f0[i] = delta_f[i]/(f0)
 
-    # plot the normalized signal delta f/f0 at the different t
-    # plt.plot(t,delta_ft_f0, label = tau + 2)
-    # plt.xlabel('time(ms)')
-    # plt.ylabel('Delta F/F0')
-    # plt.title('Flourescence intensity signal over time (bleach 2)')
-    # plt.legend()
+    print(f0)
+
+    # plot f, f - fit, df then df/f
+    plt.figure()
+    plt.subplot(2,2,1)
+    plt.plot(t,f, label='f')
+    plt.xlabel('time (ms)')
+    plt.ylabel('f')
+    plt.legend()
+
+    plt.subplot(2,2,2)
+    plt.plot(f_sub, label='f subtracted')
+    plt.plot(fit, label='fit')
+    plt.xlabel('time (ms)')
+    plt.ylabel('f-exp')
+
+    plt.legend()
+
+    plt.subplot(2,2,3)
+    plt.plot(t,delta_f, label='df')
+    plt.xlabel('time (ms)')
+    plt.ylabel('delta f')
+    plt.legend()
+
+
+    plt.subplot(2,2,4)
+    plt.plot(t,delta_ft_f0, label = 'df/f')
+    plt.xlabel('time(ms)')
+    plt.ylabel('Delta F/F0')
+    plt.tight_layout()
+    plt.legend()
+
 
     return delta_ft_f0
 
@@ -135,7 +169,7 @@ def bleach_2(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
 
 
 # ANALYSIS 3: bleaching factor acting on the background fluorescence 
-def bleach_3(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
+def bleach_t(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
     # create timesteps array for the plot
     n_timesteps = nm_conc.size
@@ -159,7 +193,7 @@ def bleach_3(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
         # where x is the length of the moving baseline (first element if f[0])
 
         if i == 0:
-            f0 =f[0]
+            f0 = f[0]
         elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
@@ -194,7 +228,7 @@ def bleach_3(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
 
 # ANALYSIS 4: bleaching on all contributions
-def bleach_4(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
+def bleach_all(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
     # create timesteps array for the plot
     n_timesteps = nm_conc.size
@@ -218,7 +252,7 @@ def bleach_4(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
         # where x is the length of the moving baseline (first element if f[0])
 
         if i == 0:
-            f0 =f[0]
+            f0 = f[0]
         elif i < bline_len:
             f0 = np.average(f[:i])
         else: 
