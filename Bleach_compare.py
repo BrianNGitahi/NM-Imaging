@@ -34,13 +34,8 @@ b3 = bleach_t(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_con
 b4 = bleach_all(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
 
 
-# create a fit for the initial values of the bleach 4 result and subtract it -- revise this later
-# it should be a fit of the f value
 
-poly4 = np.polyfit(t,b4,2)
-fit4 = np.polyval(poly4,t)
 
-plt.show()
 
 
 

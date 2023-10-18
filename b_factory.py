@@ -35,17 +35,18 @@ def bleach_nm(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
 
     # calculate f0 values and populate the signal array
     for i in range(f.size):
-
-        # calculate f0 by averaging the previous x number of f values
-        # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline (first element if f[0])
-
+        
+        # calculate f0 by getting the median value of the bottom 70% of previous f values
+        
         if i == 0:
             f0 = f[0]
         elif i < bline_len:
-            f0 = np.average(f[:i])
+            percentile_mark = np.percentile(f[:i],70)
+            f0 = np.median(f[f<percentile_mark])
         else: 
-            f0 = np.average(f[i-bline_len:i])
+            prev_values = f[i-bline_len:i]
+            percentile_mark = np.percentile(prev_values,70)
+            f0 = np.median(prev_values[prev_values<percentile_mark])
 
 
         # calculate normalized signal using the calculated f0
@@ -103,16 +104,17 @@ def bleach_dnm(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
     # calculate f0 values and populate the signal array
     for i in range(f.size):
 
-        # calculate f0 by averaging the previous x number of f values
-        # if x is bigger than the current index then use all the prev f values
-        # where x is the length of the moving baseline (first element if f[0])
-
+        # calculate f0 by getting the median value of the bottom 70% of previous f values
+        
         if i == 0:
-            f0 = f_sub[0]
+            f0 = f[0]
         elif i < bline_len:
-            f0 = np.average(f_sub[:i])
+            percentile_mark = np.percentile(f[:i],70)
+            f0 = np.median(f[f<percentile_mark])
         else: 
-            f0 = np.average(f_sub[i-bline_len:i])
+            prev_values = f[i-bline_len:i]
+            percentile_mark = np.percentile(prev_values,70)
+            f0 = np.median(prev_values[prev_values<percentile_mark])
 
         # calculate df, and df/f, the normalized signal, using the calculated f0
         delta_f[i] = f_sub[i]-f0
@@ -152,6 +154,7 @@ def bleach_dnm(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
 
 
     return delta_ft_f0
+
 
 # TESTING IF THE FUNCTION WORKS
 # # check this bleaching effect 1 for different values of tau -- different bleach factor
