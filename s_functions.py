@@ -40,13 +40,11 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     n_spikes = np.size(np.nonzero(firing_neuron))
 
     # print simulated neuron summary:
-    print('Simulated neuron with {} spikes in {} timesteps ({} Hz).'.format(n_spikes, n_timesteps, firing_rate))
+    # print('Simulated neuron with {} spikes in {} timesteps ({} Hz).'.format(n_spikes, n_timesteps, firing_rate))
   
 
     return firing_neuron
 
-# output 1
-#firing_neuron = simulate_neuron(70000,1)
 
 
 # Function 2: takes in an array of neuron activity and gives corresponding [NM]
@@ -92,21 +90,12 @@ def simulate_nm_conc(neuron_activity,nm_conc0, k_b,k_r,gamma):
     # then [NM R], the NM bound to the receptor
     nm_r_conc = k_r*nm_conc
 
-    # # plot [NM], [NM B] and [NM R] simulataneously
-    # plt.plot(t,nm_conc, color = 'b', label='[NM]')
-    # plt.plot(t,nm_b_conc, color = 'g', label='[NM B]')
-    # plt.plot(t,nm_r_conc, color = 'r', label='[NM R]')
+    # then get the total nm concentration - both bound and unbound
+    nm_tot = nm_conc + nm_b_conc + nm_r_conc
 
-    # # label the axes and make legend
-    # plt.xlabel('time (ms)')
-    # plt.ylabel('Concentration')
-    # plt.title('NM concentration across {} ms'.format(n_timesteps))
-    # plt.legend()
-    # plt.show() 
-   
-
+  
     # return the array of the [NM], [NM B], and [NM R]
-    return nm_conc, nm_b_conc, nm_r_conc
+    return nm_conc, nm_b_conc, nm_r_conc, nm_tot
 
 # output 2
 #nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
@@ -128,44 +117,79 @@ def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
     plt.title('NM {} concentration from {} to {} ms'.format(plotlabel, start,stop))
     plt.show()
 
-# output 2.1
-# plot_nm_conc(nm_conc, start = 22000,stop = 26000)
-# plot_nm_conc(nm_b_conc, start = 22000,stop = 26000, colour='g', plotlabel='B')
-# plot_nm_conc(nm_r_conc, start = 22000,stop = 26000, colour='r', plotlabel='R')
 
 
-# function 3: get that signal!
-def simulate_flourescence_signal(K_D, F_max, F_min, nm_conc):
-    
-    # define K_D prime as
-    K_Dp = K_D*(F_min/F_max)
 
-    # the initial/steady state concentration, [NM]i,0, of the neuromdultor
-    # CONFIRM VALUE FROM KENTA
-    nm_conc_0 = 0 
+def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000, F_max = 45, F_min = 10, bline_len=5000):
 
-    # define the numerator and denominator
-    numerator = (K_Dp + nm_conc)/(K_D + nm_conc)
-    denominator = (K_Dp + nm_conc_0)/(K_D + nm_conc_0)
+    # autofluorescence
+    f_tissue = 0.02
 
-    # derive delta f/f0 by plugging in
-    delta_ft_f0 = (numerator/denominator) - 1
-
-    # create timesteps array for the plot
+    # create timesteps 
     n_timesteps = nm_conc.size
     t = np.linspace(0,n_timesteps-1,n_timesteps)
 
-    # plot the normalized signal delta f/f0 at the different t
-    # plt.plot(t,delta_ft_f0)
-    # plt.xlabel('time(ms)')
-    # plt.ylabel('Delta F/F0')
-    # plt.title('Flourescence intensity signal over time')
-    # plt.show()
+    # define bleach factors for the autofluorescence and fluorescence from dye + nm
+    bleach_d = np.exp(-t/tau_d)
+    bleach_nm = np.exp(-t/tau_nm)
+    bleach_tissue = np.exp(-t/tau_tissue)
+    
+    # calculate F: derived from eq 2 in Neher/Augsutine
+    f = bleach_tissue*f_tissue + (bleach_d*K_D*F_min + bleach_nm*nm_conc*F_max)/(K_D + nm_conc)
 
-    print('completed f_signal simulation')
+    # fitting polynomial comes later?
 
-    return delta_ft_f0
+    # fit a polynomial to f and subtract it from f
+    poly = np.polyfit(t,f,5)
+    fit = np.polyval(poly,t)
+    f_subtracted = f-fit 
 
+    # to correct for negative values
+    f_alt = f_subtracted + np.max(np.abs(f_subtracted))
+    
+
+    # calculate f0 by getting the median value of the bottom 70% of previous f values
+    percentile_mark = np.percentile(f,70)
+    f0 = np.median(f[f<percentile_mark])
+    
+    # df calc -- median value method
+    df = f-f0
+    df_f_med = df/f0
+
+
+    # df/f with the subtracted formula
+    df_f_med2 = (f_alt - f0)/f0
+
+
+    # define the and delta f and the df/f signal arrays
+    df_f_ave = np.zeros(f.size)
+    f0_averages = np.zeros(f.size)
+    
+
+
+    # calculate f0 values and populate the signal array
+    for i in range(f.size):
+
+        # calculate f0 using the average method
+        if i==0:
+            f0_ave=f[0]
+        
+        elif i < bline_len:
+            f0_ave = np.average(f[:i]) 
+        else: 
+            f0_ave = np.average(f[i-bline_len:i]) 
+
+        # calculate normalized signal using the calculated f0
+    
+        
+        # average value
+        df_f_ave[i] = (f[i] - f0_ave)/f0_ave
+        f0_averages[i]=f0_ave
+
+    # alternative f with the subtracted exponential
+
+
+    return f, df, df_f_ave, df_f_med 
 
 # output 3
 #f_signal = simulate_flourescence_signal(K_D = 1000, F_max = 45, F_min = 10, nm_conc=nm_conc)
