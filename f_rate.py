@@ -62,7 +62,7 @@ def plot_different_bleach(firing_rates,bleach_times):
     # make the average signal plots at different bleach time constants
     plt.figure()
     for i in range(len(bleach_times)):
-        plt.plot(firing_rates, average_signal_plots[i], label=bleach_times[i])
+        plt.plot(firing_rates, average_signal_plots[i], label=np.round(bleach_times[i],0))
    
     plt.xlabel('Firing rates(Hz)')
     plt.ylabel('Average df/f signal')
@@ -74,22 +74,22 @@ def plot_different_bleach(firing_rates,bleach_times):
     # plot at log scale
     plt.figure()
     for i in range(len(bleach_times)):
-        plt.loglog(firing_rates, average_signal_plots[i], label=bleach_times[i])
+        plt.loglog(firing_rates, average_signal_plots[i], label=np.round(bleach_times[i],0))
 
     plt.xlabel('Firing rates(Hz)')
     plt.ylabel('Average df/f signal')
-    plt.title('Signal vs activity plot - Log')
+    plt.title('Signal vs activity plot')
     plt.legend()
     plt.show()
 
 
-different_firing_rates = np.linspace(1,1000,15)
+different_firing_rates = np.linspace(1,50,15)
 # Check 1: -- It works
 # signal_vs_activity(different_firing_rates,10e7)
 
 
 # Check 2:
-list_of_bleaches = np.logspace(-20,20,10)
+list_of_bleaches = np.logspace(-4,13,5)
 plot_different_bleach(different_firing_rates,bleach_times=list_of_bleaches)
 
 
