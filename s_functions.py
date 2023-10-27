@@ -156,16 +156,19 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     df = f-f0
     df_f_med = df/f0
 
-
     # df/f with the subtracted formula
-    df_f_med2 = (f_alt - f0)/f0
+    # subtracted signal
+    percentile_mark_prime = np.percentile(f_alt,70)
+    f0_sub = np.median(f_alt[f_alt<percentile_mark_prime])
+    print('f0_sub has a nan {}'.format(np.any(np.isnan(f0_sub))))
+    df_f_med_sub = (f_alt - f0_sub)/f0_sub
+    print('df_f_med_sub has a nan {}'.format(np.any(np.isnan(df_f_med_sub))))
 
 
-    # define the and delta f and the df/f signal arrays
+    # define the delta f and the df/f signal arrays
     df_f_ave = np.zeros(f.size)
     f0_averages = np.zeros(f.size)
     
-
 
     # calculate f0 values and populate the signal array
     for i in range(f.size):
@@ -189,8 +192,7 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     # alternative f with the subtracted exponential
 
 
-    return f, df, df_f_ave, df_f_med 
-
+    return f, df, df_f_ave, df_f_med, df_f_med_sub 
 # output 3
 #f_signal = simulate_flourescence_signal(K_D = 1000, F_max = 45, F_min = 10, nm_conc=nm_conc)
 
