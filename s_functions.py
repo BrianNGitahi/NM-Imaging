@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy as sp
+from scipy.optimize import curve_fit
 
 # This script contains the functions in the Simulation notebook
 # Its purpose is to run all the functions and produce a df/f plot
@@ -73,11 +74,13 @@ def simulate_nm_conc(neuron_activity,nm_conc0, k_b,k_r,gamma):
         # update [NM] value
 
         # define d_nm/dt, the inifinitesimal decay in [NM] in one timestep 
-        d_nm_dt =  (nm_conc[t]-nm_conc0)/tau
-
+        
         # if there's a spike add Delta_nm else subtract d_nm/dt
-        if neuron_activity[t]==1: nm_conc[t] = nm_conc[t] + delta_nm
-        else: nm_conc[t] = nm_conc[t] - d_nm_dt 
+        if neuron_activity[t]==1: 
+            nm_conc[t] = nm_conc[t] + delta_nm
+        else: 
+            d_nm_dt =  (nm_conc[t]-nm_conc0)/tau
+            nm_conc[t] = nm_conc[t] - d_nm_dt 
 
     # plot the [NM] at all timesteps
     n_timesteps = neuron_activity.size
@@ -127,7 +130,7 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
 
     # create timesteps 
     n_timesteps = nm_conc.size
-    t = np.linspace(0,n_timesteps-1,n_timesteps)
+    t = np.linspace(0,n_timesteps-1,n_timesteps) 
 
     # define bleach factors for the autofluorescence and fluorescence from dye + nm
     bleach_d = np.exp(-t/tau_d)
@@ -137,17 +140,29 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     # calculate F: derived from eq 2 in Neher/Augsutine
     f = bleach_tissue*f_tissue + (bleach_d*K_D*F_min + bleach_nm*nm_conc*F_max)/(K_D + nm_conc)
 
-    # fitting polynomial comes later?
 
-    # fit a polynomial to f and subtract it from f
-    poly = np.polyfit(t,f,5)
-    fit = np.polyval(poly,t)
-    f_subtracted = f-fit 
+    # fit an exponential to remove the bleachign trend 
 
-    # to correct for negative values
-    f_alt = f_subtracted + np.max(np.abs(f_subtracted))
+    # define an exponential function that we'll use as the basis for the fit
+    def exp_decay(t,a,b):
+        return a*np.exp(-t/b)
+
+    # perform the fit
+    params, covariance = curve_fit(exp_decay,t,f)
+
+    # get the parameters
+    a_fit, b_fit = params
+
+    # define the fitted function
+    fit = exp_decay(t,a_fit,b_fit)
     
+    # subtracted f
+    f_subtracted = f - fit
 
+    # to correct for negative values in the fluorescence that result in a -ve df/f
+    f_alt = f_subtracted + np.max(np.abs(f_subtracted))
+
+    
     # calculate f0 by getting the median value of the bottom 70% of previous f values
     percentile_mark = np.percentile(f,70)
     f0 = np.median(f[f<percentile_mark])
@@ -156,13 +171,15 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     df = f-f0
     df_f_med = df/f0
 
+
     # df/f with the subtracted formula
     # subtracted signal
     percentile_mark_prime = np.percentile(f_alt,70)
     f0_sub = np.median(f_alt[f_alt<percentile_mark_prime])
-    print('f0_sub has a nan {}'.format(np.any(np.isnan(f0_sub))))
-    df_f_med_sub = (f_alt - f0_sub)/f0_sub
-    print('df_f_med_sub has a nan {}'.format(np.any(np.isnan(df_f_med_sub))))
+    df_sub = f_alt - f0_sub
+    
+    df_f_med_sub = df_sub/f0_sub
+    
 
 
     # define the delta f and the df/f signal arrays
@@ -189,10 +206,24 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
         df_f_ave[i] = (f[i] - f0_ave)/f0_ave
         f0_averages[i]=f0_ave
 
-    # alternative f with the subtracted exponential
+    # define progression arrays for f, df, df/f
+    progression = []
+    progression_sub = []
+
+    # without the subtracted exponent
+    progression.append(f)
+    progression.append(df)
+    progression.append(df_f_med)
+    progression.append(df_f_ave)
+
+    # with the subtracted exponent
+    progression_sub.append(f)
+    progression_sub.append(f_alt)
+    progression_sub.append(df_sub)
+    progression_sub.append(df_f_med_sub)
 
 
-    return f, df, df_f_ave, df_f_med, df_f_med_sub 
+    return progression, progression_sub
 # output 3
 #f_signal = simulate_flourescence_signal(K_D = 1000, F_max = 45, F_min = 10, nm_conc=nm_conc)
 
