@@ -30,17 +30,17 @@ def signal_vs_activity(firing_rates, bleach_time):
         guinea_neuron = simulate_neuron(70000,firing_rates[i])
 
         # generate the nm_conc
-        guinea_nm_conc, guinea_b_conc, guinea_c_conc, guinea_nm_tot = simulate_nm_conc(guinea_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
+        guinea_nm_conc, guinea_b_conc, guinea_c_conc = simulate_nm_conc(guinea_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
 
         # then generate the signal
-        progression, progression_sub = simulate_fluorescence_signal(tau_d=bleach_time, tau_nm=bleach_time, tau_tissue=10e7, nm_conc=guinea_nm_conc)
+        progression, progression_sub = simulate_fluorescence_signal(tau_d=bleach_time, tau_nm=bleach_time, tau_tissue=10e9, nm_conc=guinea_nm_conc)
 
         # get the average of this signal and add it the original array
         # check for the subtracdted version and the one without the subtraction
         average_signals.append(np.average(progression[2]))
         average_signals_sub.append(np.average(progression_sub[3]))
 
-
+        #print('at {}Hz the average signal is {}'.format(firing_rates[i], np.average(progression[2])))
 
     return average_signals, average_signals_sub
 
@@ -59,10 +59,10 @@ def plot_different_bleach(firing_rates,bleach_times, subtracted=1):
     for i in range(len(bleach_times)):
 
         # generate the average signal plot at the specific bleach time constant
-        average_signal_plot = signal_vs_activity(firing_rates,bleach_times[i])
+        average_signals, average_signals_sub = signal_vs_activity(firing_rates,bleach_times[i])
 
         # store the values in the array
-        average_signal_plots.append(average_signal_plot[subtracted])
+        average_signal_plots.append(average_signals)
 
 
     # make the average signal plots at different bleach time constants
@@ -72,6 +72,7 @@ def plot_different_bleach(firing_rates,bleach_times, subtracted=1):
    
     plt.xlabel('Firing rates(Hz)')
     plt.ylabel('Average df/f signal')
+    plt.ylim(0,0.01)
     plt.title('Signal vs activity plot')
     plt.legend(title='bleach time constants')
     plt.show()
@@ -95,7 +96,7 @@ different_firing_rates = np.linspace(1,50,15)
 
 
 # Check 2:
-list_of_bleaches = np.logspace(5,7,5)
+list_of_bleaches = np.logspace(4,20,6)
 plot_different_bleach(different_firing_rates,bleach_times=list_of_bleaches, subtracted=0)
 
 

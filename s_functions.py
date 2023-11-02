@@ -29,11 +29,11 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     firing_neuron = firing_neuron.astype(int)
 
 
-    # # then make a plot of it!
-    # plt.plot(firing_neuron)
-    # plt.xlabel('timesteps')
-    # plt.ylabel('Neuron activity')
-    # plt.title('Neuron Activity over {} timesteps'.format(n_timesteps))
+    # then make a plot of it!
+    plt.plot(firing_neuron)
+    plt.xlabel('timesteps')
+    plt.ylabel('Neuron activity')
+    plt.title('Neuron Activity ({}Hz) over {} timesteps'.format(firing_rate,n_timesteps))
     # plt.show()
 
 
@@ -41,10 +41,19 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     n_spikes = np.size(np.nonzero(firing_neuron))
 
     # print simulated neuron summary:
-    # print('Simulated neuron with {} spikes in {} timesteps ({} Hz).'.format(n_spikes, n_timesteps, firing_rate))
+    #print('Simulated neuron with {} spikes in {} timesteps ({} Hz).'.format(n_spikes, n_timesteps, firing_rate))
   
 
     return firing_neuron
+
+# test 1
+# plt.figure(1)
+# plt.subplot(2,1,1)
+# firing_neuron = simulate_neuron(70000,1)
+# plt.subplot(2,1,2)
+# firing_neuron2 = simulate_neuron(70000,10)
+# plt.tight_layout()
+# plt.show()
 
 
 
@@ -96,12 +105,34 @@ def simulate_nm_conc(neuron_activity,nm_conc0, k_b,k_r,gamma):
     # then get the total nm concentration - both bound and unbound
     nm_tot = nm_conc + nm_b_conc + nm_r_conc
 
+    # plot [NM], [NM B] and [NM R] simulataneously
+    plt.plot(t,nm_conc, color = 'b', label='[NM]')
+    plt.plot(t,nm_b_conc, color = 'g', label='[NM B]')
+    plt.plot(t,nm_r_conc, color = 'r', label='[NM R]')
+
+
+    # label the axes and make legend
+    plt.xlabel('time (ms)')
+
+    # # to zoom in on a plot
+    # plt.xlim(5000,15000)
+
+    plt.ylabel('(Change in) Concentration -- arbitrary units')
+    plt.title('NM concentration across {} ms'.format(n_timesteps))
+    plt.legend()
+    
   
     # return the array of the [NM], [NM B], and [NM R]
-    return nm_conc, nm_b_conc, nm_r_conc, nm_tot
+    return nm_conc, nm_b_conc, nm_r_conc
 
-# output 2
-#nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
+# test 2
+# plt.figure(2)
+# plt.subplot(2,1,1)
+# nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
+# plt.subplot(2,1,2)
+# nm_conc2, nm_b_conc2, nm_r_conc2 = simulate_nm_conc(firing_neuron2,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
+# plt.tight_layout()
+# plt.show()
 
 # Function 2.1: produces zoomed in plot
 def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
@@ -119,7 +150,6 @@ def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
     plt.ylabel('NM concentration')
     plt.title('NM {} concentration from {} to {} ms'.format(plotlabel, start,stop))
     plt.show()
-
 
 
 
@@ -141,7 +171,7 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     f = bleach_tissue*f_tissue + (bleach_d*K_D*F_min + bleach_nm*nm_conc*F_max)/(K_D + nm_conc)
 
 
-    # fit an exponential to remove the bleachign trend 
+    # fit an exponential to remove the bleaching trend 
 
     # define an exponential function that we'll use as the basis for the fit
     def exp_decay(t,a,b):
@@ -204,7 +234,7 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
         
         # average value
         df_f_ave[i] = (f[i] - f0_ave)/f0_ave
-        f0_averages[i]=f0_ave
+        f0_averages[i] = f0_ave
 
     # define progression arrays for f, df, df/f
     progression = []
@@ -224,8 +254,62 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
 
 
     return progression, progression_sub
-# output 3
-#f_signal = simulate_flourescence_signal(K_D = 1000, F_max = 45, F_min = 10, nm_conc=nm_conc)
+
+
+
+
+def plot_f_signal(progression, progression_sub):
+
+
+    # create timesteps array for the plot
+    n_timesteps = nm_conc.size
+    t = np.linspace(0,n_timesteps-1,n_timesteps)
+
+    plt.figure(1)
+    plt.subplot(2,2,1)
+    plt.plot(t,progression[0], label='f')
+    plt.xlabel('time (ms)')
+    plt.ylabel('f')
+    plt.title('f  vs time')
+    plt.legend()
+    
+    plt.subplot(2,2,2)
+    plt.plot(t,progression[1], label='df')
+    plt.xlabel('time (ms)')
+    plt.ylabel('df')
+    plt.title('df vs time (f0:median)')
+    plt.legend()
+
+    plt.subplot(2,2,3)
+    plt.plot(t,progression[2], label = 'df/f')
+    plt.xlabel('time(ms)')
+    plt.ylabel(' df/f')
+    plt.title('df/f vs time (f0:median)')
+    plt.legend()
+   
+    plt.subplot(2,2,4)
+    plt.plot(t,progression[3], label = 'df/f')
+    plt.xlabel('time(ms)')
+    plt.ylabel(' df/f')
+    plt.title('df/f vs time (f0:average)')
+    plt.legend()
+    plt.suptitle('Progression from f to df/f', size = 16)
+    plt.tight_layout()
+
+
+
+# # output 3
+# progression, progression_sub  = simulate_fluorescence_signal(tau_d=10e9,tau_nm=10e9, tau_tissue=10e9, nm_conc = nm_conc)
+# progression2, progression_sub2 = simulate_fluorescence_signal(tau_d=10e9,tau_nm=10e9, tau_tissue=10e9, nm_conc = nm_conc2)
+
+# plot_f_signal(progression, progression_sub)
+# print('average signal is {}'.format(np.average(progression[2])))
+# plt.show()
+# plot_f_signal(progression2, progression_sub2)
+# print('average signal is {}'.format(np.average(progression2[2])))
+# plt.show()
+
+
 
 
 
