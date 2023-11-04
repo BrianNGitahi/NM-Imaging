@@ -30,10 +30,10 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
 
 
     # then make a plot of it!
-    plt.plot(firing_neuron)
-    plt.xlabel('timesteps')
-    plt.ylabel('Neuron activity')
-    plt.title('Neuron Activity ({}Hz) over {} timesteps'.format(firing_rate,n_timesteps))
+    # plt.plot(firing_neuron)
+    # plt.xlabel('timesteps')
+    # plt.ylabel('Neuron activity')
+    # plt.title('Neuron Activity ({}Hz) over {} timesteps'.format(firing_rate,n_timesteps))
     # plt.show()
 
 
@@ -106,20 +106,20 @@ def simulate_nm_conc(neuron_activity,nm_conc0, k_b,k_r,gamma):
     nm_tot = nm_conc + nm_b_conc + nm_r_conc
 
     # plot [NM], [NM B] and [NM R] simulataneously
-    plt.plot(t,nm_conc, color = 'b', label='[NM]')
-    plt.plot(t,nm_b_conc, color = 'g', label='[NM B]')
-    plt.plot(t,nm_r_conc, color = 'r', label='[NM R]')
+    # plt.plot(t,nm_conc, color = 'b', label='[NM]')
+    # plt.plot(t,nm_b_conc, color = 'g', label='[NM B]')
+    # plt.plot(t,nm_r_conc, color = 'r', label='[NM R]')
 
 
-    # label the axes and make legend
-    plt.xlabel('time (ms)')
+    # # label the axes and make legend
+    # plt.xlabel('time (ms)')
 
-    # # to zoom in on a plot
-    # plt.xlim(5000,15000)
+    # # # to zoom in on a plot
+    # # plt.xlim(5000,15000)
 
-    plt.ylabel('(Change in) Concentration -- arbitrary units')
-    plt.title('NM concentration across {} ms'.format(n_timesteps))
-    plt.legend()
+    # plt.ylabel('(Change in) Concentration -- arbitrary units')
+    # plt.title('NM concentration across {} ms'.format(n_timesteps))
+    # plt.legend()
     
   
     # return the array of the [NM], [NM B], and [NM R]
@@ -156,7 +156,7 @@ def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
 def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000, F_max = 45, F_min = 10, bline_len=5000):
 
     # autofluorescence
-    f_tissue = 0.02
+    f_tissue = np.random.normal(0.002,0.0005,nm_conc.size)
 
     # create timesteps 
     n_timesteps = nm_conc.size
@@ -167,11 +167,19 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     bleach_nm = np.exp(-t/tau_nm)
     bleach_tissue = np.exp(-t/tau_tissue)
     
-    # calculate F: derived from eq 2 in Neher/Augsutine
+    # calculate F: derived from eq 2 in Neher/Augustine
     f = bleach_tissue*f_tissue + (bleach_d*K_D*F_min + bleach_nm*nm_conc*F_max)/(K_D + nm_conc)
 
+    # calculate f0 by getting the median value of the bottom 70% of previous f values
+    percentile_mark = np.percentile(f,70)
+    f0 = np.median(f[f<percentile_mark])
+    
+    # df calc -- median value method
+    df = f-f0
+    df_f_med = df/f0
 
-    # fit an exponential to remove the bleaching trend 
+
+    # SUBTRACTED VERSION: fit an exponential to remove the bleaching trend 
 
     # define an exponential function that we'll use as the basis for the fit
     def exp_decay(t,a,b):
@@ -185,21 +193,12 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
 
     # define the fitted function
     fit = exp_decay(t,a_fit,b_fit)
-    
+
     # subtracted f
     f_subtracted = f - fit
 
     # to correct for negative values in the fluorescence that result in a -ve df/f
     f_alt = f_subtracted + np.max(np.abs(f_subtracted))
-
-    
-    # calculate f0 by getting the median value of the bottom 70% of previous f values
-    percentile_mark = np.percentile(f,70)
-    f0 = np.median(f[f<percentile_mark])
-    
-    # df calc -- median value method
-    df = f-f0
-    df_f_med = df/f0
 
 
     # df/f with the subtracted formula

@@ -27,7 +27,7 @@ def signal_vs_activity(firing_rates, bleach_time):
     for i in range(firing_rates.size):
         
         # simulate neuron with different firing rate
-        guinea_neuron = simulate_neuron(70000,firing_rates[i])
+        guinea_neuron = simulate_neuron(3600000,firing_rates[i])
 
         # generate the nm_conc
         guinea_nm_conc, guinea_b_conc, guinea_c_conc = simulate_nm_conc(guinea_neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
