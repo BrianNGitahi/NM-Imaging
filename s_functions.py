@@ -29,13 +29,6 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     firing_neuron = firing_neuron.astype(int)
 
 
-    # then make a plot of it!
-    # plt.plot(firing_neuron)
-    # plt.xlabel('timesteps')
-    # plt.ylabel('Neuron activity')
-    # plt.title('Neuron Activity ({}Hz) over {} timesteps'.format(firing_rate,n_timesteps))
-    # plt.show()
-
 
     # check exactly how many spikes were produced: to see if it works
     n_spikes = np.size(np.nonzero(firing_neuron))
@@ -43,7 +36,6 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     # print simulated neuron summary:
     #print('Simulated neuron with {} spikes in {} timesteps ({} Hz).'.format(n_spikes, n_timesteps, firing_rate))
   
-
     return firing_neuron
 
 # test 1
@@ -153,10 +145,10 @@ def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
 
 
 
-def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000, F_max = 45, F_min = 10, bline_len=5000):
+def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, variance=0.0005, K_D = 1000, F_max = 45, F_min = 10, bline_len=5000):
 
-    # autofluorescence
-    f_tissue = np.random.normal(0.002,0.0005,nm_conc.size)
+     # noisy autofluorescence
+    f_tissue = np.random.normal(0.002,variance,nm_conc.size)
 
     # create timesteps 
     n_timesteps = nm_conc.size
@@ -170,16 +162,8 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
     # calculate F: derived from eq 2 in Neher/Augustine
     f = bleach_tissue*f_tissue + (bleach_d*K_D*F_min + bleach_nm*nm_conc*F_max)/(K_D + nm_conc)
 
-    # calculate f0 by getting the median value of the bottom 70% of previous f values
-    percentile_mark = np.percentile(f,70)
-    f0 = np.median(f[f<percentile_mark])
-    
-    # df calc -- median value method
-    df = f-f0
-    df_f_med = df/f0
 
-
-    # SUBTRACTED VERSION: fit an exponential to remove the bleaching trend 
+    # fit an exponential to remove the bleaching trend 
 
     # define an exponential function that we'll use as the basis for the fit
     def exp_decay(t,a,b):
@@ -193,12 +177,22 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
 
     # define the fitted function
     fit = exp_decay(t,a_fit,b_fit)
-
+    
     # subtracted f
     f_subtracted = f - fit
 
+
     # to correct for negative values in the fluorescence that result in a -ve df/f
     f_alt = f_subtracted + np.max(np.abs(f_subtracted))
+
+    
+    # calculate f0 by getting the median value of the bottom 70% of previous f values
+    percentile_mark = np.percentile(f,70)
+    f0 = np.median(f[f<percentile_mark])
+    
+    # df calc -- median value method
+    df = f-f0
+    df_f_med = df/f0
 
 
     # df/f with the subtracted formula
@@ -233,11 +227,12 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, K_D = 1000,
         
         # average value
         df_f_ave[i] = (f[i] - f0_ave)/f0_ave
-        f0_averages[i] = f0_ave
+        f0_averages[i]=f0_ave
 
     # define progression arrays for f, df, df/f
     progression = []
     progression_sub = []
+    #progression_multi = []
 
     # without the subtracted exponent
     progression.append(f)

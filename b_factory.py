@@ -10,11 +10,41 @@ import pandas as pd
 import scipy as sp
 
 # import the necessary functions
-from s_functions import simulate_neuron, simulate_nm_conc
+from s_functions import simulate_neuron, simulate_nm_conc, simulate_fluorescence_signal
 
 
 # define the background fluorescence due to the tissue
 bg_tissue = 1.5
+
+
+# functino to generate heatmap
+def bleach_dnm_heat(tau_values, nm_conc_input, var):
+
+    # create an array to store the snr values
+    snr = np.zeros((tau_values.size, tau_values.size))
+
+    # BONUS: find way to do it that's more effecient -- this is O(n^2)
+    for i in range(len(tau_values)):
+        for j in range(len(tau_values)):
+            progression, progression_sub = simulate_fluorescence_signal(nm_conc=nm_conc_input,variance=var, tau_d=tau_values[i],tau_nm=tau_values[i], tau_tissue=tau_values[j])
+            snr[i,j] = np.abs(np.mean(progression_sub[3])/np.std(progression_sub[3]))
+            #print(np.std(signal[3])) -- for testing
+    
+    # use log tau values to make a simple scale
+    log_tau_values = np.log10(tau_values)
+
+    
+
+    # Generate the heatmap
+    start, stop = log_tau_values[0], log_tau_values[-1]
+    plt.imshow(snr, cmap='magma', extent=[start, stop, stop, start])
+    plt.colorbar(label='snr')
+    # plt.xlabel('bleach time constant in tissue fluorescence')
+    # plt.ylabel('bleach time constant in dye + nm flourescence')
+    plt.title('variance = {}'.format(var))
+    #plt.show()
+
+    return snr
 
 # ANALYSIS 1: bleaching factor acting on the [NM] contribution to F
 def bleach_nm(K_D, tau, F_max, F_min, nm_conc, bline_len=5000):
@@ -120,37 +150,37 @@ def bleach_dnm(K_D, tau, F_max, F_min, nm_conc, bline_len =5000):
         delta_f[i] = f_sub[i]-f0
         delta_ft_f0[i] = delta_f[i]/(f0)
 
-    print(f0)
+    
 
     # plot f, f - fit, df then df/f
-    plt.figure()
-    plt.subplot(2,2,1)
-    plt.plot(t,f, label='f')
-    plt.xlabel('time (ms)')
-    plt.ylabel('f')
-    plt.legend()
+    # plt.figure()
+    # plt.subplot(2,2,1)
+    # plt.plot(t,f, label='f')
+    # plt.xlabel('time (ms)')
+    # plt.ylabel('f')
+    # plt.legend()
 
-    plt.subplot(2,2,2)
-    plt.plot(f_sub, label='f subtracted')
-    plt.plot(fit, label='fit')
-    plt.xlabel('time (ms)')
-    plt.ylabel('f-exp')
+    # plt.subplot(2,2,2)
+    # plt.plot(f_sub, label='f subtracted')
+    # plt.plot(fit, label='fit')
+    # plt.xlabel('time (ms)')
+    # plt.ylabel('f-exp')
 
-    plt.legend()
+    # plt.legend()
 
-    plt.subplot(2,2,3)
-    plt.plot(t,delta_f, label='df')
-    plt.xlabel('time (ms)')
-    plt.ylabel('delta f')
-    plt.legend()
+    # plt.subplot(2,2,3)
+    # plt.plot(t,delta_f, label='df')
+    # plt.xlabel('time (ms)')
+    # plt.ylabel('delta f')
+    # plt.legend()
 
 
-    plt.subplot(2,2,4)
-    plt.plot(t,delta_ft_f0, label = 'df/f')
-    plt.xlabel('time(ms)')
-    plt.ylabel('Delta F/F0')
-    plt.tight_layout()
-    plt.legend()
+    # plt.subplot(2,2,4)
+    # plt.plot(t,delta_ft_f0, label = 'df/f')
+    # plt.xlabel('time(ms)')
+    # plt.ylabel('Delta F/F0')
+    # plt.tight_layout()
+    # plt.legend()
 
 
     return delta_ft_f0
