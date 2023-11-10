@@ -1,5 +1,5 @@
-# This script was the original analysis script and
-# has since been updated -- cf b_compare or analysis
+# This script was the original bleaching analysis script and
+# has since been updated -- cf bleach_compare
 
 # it has the bleaching analysis with the df/f computed without the 
 # moving baseline calculation of f0

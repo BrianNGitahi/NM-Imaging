@@ -29,7 +29,6 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
     firing_neuron = firing_neuron.astype(int)
 
 
-
     # check exactly how many spikes were produced: to see if it works
     n_spikes = np.size(np.nonzero(firing_neuron))
 
@@ -46,6 +45,31 @@ def simulate_neuron(n_timesteps, firing_rate, number=1):
 # firing_neuron2 = simulate_neuron(70000,10)
 # plt.tight_layout()
 # plt.show()
+
+# function 1.1: regularly firing neuron
+def reg_neuron(n_timesteps, firing_rate, number=1):
+
+    # get the numner of seconds: n_timesteps is in ms
+    seconds = n_timesteps/1000
+
+    # get the number of spikes: firing rate is in Hz
+    n_spikes = seconds*firing_rate
+
+    # generate indices where spiking occurs
+    firing_indices = np.linspace(0,n_timesteps-1,n_spikes)
+
+    # make an array to reflect this activity
+    firing_neuron = np.zeros(n_timesteps)
+    firing_neuron[firing_indices]=1
+
+    print('number of spikes {}.'.format(np.size(np.nonzero(firing_neuron))))
+
+
+    return firing_neuron
+
+
+
+
 
 
 
@@ -127,21 +151,22 @@ def simulate_nm_conc(neuron_activity,nm_conc0, k_b,k_r,gamma):
 # plt.show()
 
 # Function 2.1: produces zoomed in plot
-def plot_nm_conc(nm,start,stop,colour='b', plotlabel = ''):
+def plot_nm_conc(nm,nmb, nmr, colour='b'):
 
     # define the timesteps to plot the [NM]
-    timesteps = stop - start + 1
-    t = np.linspace(start,stop,timesteps)
-
-    # get that section of the [NM] array
-    nm_section = nm[start:stop+1]
+    t = np.linspace(0,nm.size-1,nm.size)
 
     # plot the [NM] 
-    plt.plot(t,nm_section, color=colour, label=plotlabel)
+    plt.plot(t,nm, color=colour, label='[NM]')
+    plt.plot(t,nmb, color = 'g', label='[NM B]')
+    plt.plot(t,nmr, color = 'r', label='[NM R]')
     plt.xlabel('time (ms)')
     plt.ylabel('NM concentration')
-    plt.title('NM {} concentration from {} to {} ms'.format(plotlabel, start,stop))
+    plt.title('NM dynamics from firing neuron')
+    plt.legend()
     plt.show()
+
+    
 
 
 
@@ -251,8 +276,8 @@ def simulate_fluorescence_signal(tau_d, tau_nm, tau_tissue, nm_conc, variance=0.
 
 
 
-
-def plot_f_signal(progression, progression_sub):
+# plot the progression from f -- df/f
+def plot_f_signal(progression, progression_sub, nm_conc):
 
 
     # create timesteps array for the plot
@@ -289,6 +314,39 @@ def plot_f_signal(progression, progression_sub):
     plt.legend()
     plt.suptitle('Progression from f to df/f', size = 16)
     plt.tight_layout()
+
+    plt.figure(2)
+    plt.subplot(2,2,1)
+    plt.plot(t,progression_sub[0], label='f')
+    plt.xlabel('time (ms)')
+    plt.ylabel('f')
+    plt.title('f  vs time')
+    plt.legend()
+    
+    plt.subplot(2,2,2)
+    plt.plot(t,progression_sub[2], label = 'df')
+    plt.xlabel('time(ms)')
+    plt.ylabel(' df')
+    plt.title('df vs time (f0:median)')
+    plt.legend()
+    
+    plt.subplot(2,2,3)
+    plt.plot(t,progression_sub[3], label = 'df/f')
+    plt.xlabel('time(ms)')
+    plt.ylabel(' df/f')
+    plt.title('df/f vs time (f0:median)')
+    plt.legend()
+
+    plt.subplot(2,2,4)
+    plt.plot(t,progression_sub[1], label='f - exponential (+ constant)')
+    plt.xlabel('time (ms)')
+    plt.ylabel('f_sub')
+    plt.title('f_sub vs time')
+    plt.legend()
+    
+    plt.suptitle('Progression from f to df/f (using subtracted f)', size = 16)
+    plt.tight_layout()
+    plt.show()
 
 
 
