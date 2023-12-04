@@ -112,29 +112,5 @@ def plot_dff_v_activity(firing_rates, dff, fit):
 # plt.show()
 
 
-# Test 2:
-
-# check the effect of changing the variance of the gaussian noise on ftissue on the snr 
-var_values = np.array([0.0001,0.001,0.01,0.1,1,3])
-var_v = np.array([1,3,10])
-
-# bleach time constants for heatmap
-specific_taus = np.logspace(5,7,20)
-
-# generate a firing neuron
-neuron = simulate_neuron(n_timesteps=70000,firing_rate=13)
-
-# generate nm_conc 
-nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(neuron,nm_conc0=0,k_b=0.6, k_r=0.4,gamma=0.004)
-
-# for different variances, get the heatmap
-plt.figure()
-for i in range(len(var_v)):
-    plt.subplot(3,2,i+1)
-    bleach_dnm_heat(specific_taus,nm_conc_input=nm_conc, var = var_v[i])
-
-plt.suptitle('SNR vs bleach strength at different variance for ftissue', size = 16)
-plt.tight_layout()
-plt.show()
 
 

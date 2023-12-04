@@ -26,12 +26,12 @@ nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(firing_neuron,nm_conc0=0,k_b=0.
 # plot bleached signal for the bleach factor acting on different components of f
 
 # create timesteps array for the plot
-t = np.linspace(0,nm_conc.size-1,nm_conc.size)
+# t = np.linspace(0,nm_conc.size-1,nm_conc.size)
 
-b1 = bleach_nm(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
-b2 = bleach_dnm(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
-b3 = bleach_t(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
-b4 = bleach_all(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
+# b1 = bleach_nm(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
+# b2 = bleach_dnm(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
+# b3 = bleach_t(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
+# b4 = bleach_all(K_D = 1000, tau=chosen_tau, F_max = 45, F_min = 10, nm_conc=nm_conc, bline_len=5000)
 
 
 
@@ -52,9 +52,10 @@ nm_conc, nm_b_conc, nm_r_conc = simulate_nm_conc(neuron,nm_conc0=0,k_b=0.6, k_r=
 
 # for different variances, get the heatmap
 plt.figure()
-for i in range(len(var_v)):
+for i in range(len(var_values)):
     plt.subplot(3,2,i+1)
-    bleach_dnm_heat(specific_taus,nm_conc_input=nm_conc, var = var_v[i])
+    bleach_dnm_heat(specific_taus,nm_conc_input=nm_conc, var = var_values[i])
+    print('Generated heatmap {}'.format(i))
 
 plt.suptitle('SNR vs bleach strength at different variance for ftissue', size = 16)
 plt.tight_layout()
